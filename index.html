@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FamilyQuest: The Connected Realm</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #070714;
+      --bg2: #0d0d2b;
+      --bg3: #12122e;
+      --card: #1a1a3e;
+      --card2: #252550;
+      --accent: #4f8ef7;
+      --accent2: #7c5cf6;
+      --accent3: #f74fb8;
+      --text: #e8e8ff;
+      --text2: #9090bb;
+      --success: #4fd8a0;
+      --danger: #f74f4f;
+      --warning: #f7c94f;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .screen { display: none; min-height: 100vh; }
+    .screen.active { display: flex; flex-direction: column; }
+
+    /* ── TITLE ── */
+    #screen-title {
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at center, #1a1a4e 0%, var(--bg) 70%);
+      position: relative;
+      overflow: hidden;
+    }
+    .stars {
+      position: absolute; inset: 0;
+      background-image: radial-gradient(1px 1px at 20% 30%, #fff5 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 70%, #fff3 0%, transparent 100%),
+        radial-gradient(1px 1px at 80% 20%, #fff4 0%, transparent 100%),
+        radial-gradient(1px 1px at 10% 80%, #fff3 0%, transparent 100%),
+        radial-gradient(1px 1px at 40% 50%, #fff2 0%, transparent 100%);
+      background-size: 300px 300px, 400px 400px, 250px 250px, 350px 350px, 200px 200px;
+    }
+    .title-content { text-align: center; z-index: 1; padding: 2rem; }
+    .game-logo {
+      font-size: clamp(2.5rem, 8vw, 4rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.4rem;
+    }
+    .game-subtitle {
+      font-size: 1rem;
+      color: var(--text2);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .title-tagline { color: var(--text2); max-width: 420px; margin: 0 auto 2.5rem; font-size: 0.95rem; line-height: 1.6; }
+    .title-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      padding: 0.75rem 1.75rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(79,142,247,0.4); }
+    .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--card2); }
+    .btn-secondary:hover:not(:disabled) { background: var(--card2); }
+    .btn-success { background: linear-gradient(135deg, var(--success), #27ae60); color: #000; }
+    .btn-danger { background: linear-gradient(135deg, var(--danger), #c0392b); color: white; }
+    .btn-sm { padding: 0.45rem 1rem; font-size: 0.82rem; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+    /* ── SETUP ── */
+    #screen-setup { align-items: center; padding: 2rem 1rem; background: var(--bg); }
+    .setup-container { width: 100%; max-width: 680px; }
+    h2 { font-size: 1.7rem; margin-bottom: 0.4rem; }
+    .hint { color: var(--text2); font-size: 0.88rem; margin-bottom: 1.25rem; line-height: 1.5; }
+    .field-label { font-size: 0.85rem; color: var(--text2); display: block; margin-bottom: 5px; margin-top: 1.25rem; }
+    .input-field {
+      width: 100%;
+      padding: 0.7rem 1rem;
+      background: var(--card);
+      border: 1px solid var(--card2);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-field:focus { border-color: var(--accent); }
+    .member-list { display: flex; flex-direction: column; gap: 0.6rem; margin: 0.75rem 0; }
+    .member-row {
+      display: flex; gap: 0.5rem; align-items: center;
+      background: var(--card); padding: 0.65rem 0.9rem;
+      border-radius: 10px; border: 1px solid var(--card2);
+    }
+    .member-row .input-field { padding: 0.45rem 0.75rem; }
+    .role-select {
+      background: var(--card2); border: 1px solid #333366;
+      border-radius: 6px; color: var(--text);
+      padding: 0.45rem 0.5rem; font-size: 0.85rem; outline: none;
+    }
+    .remove-btn { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1.1rem; padding: 0 0.4rem; }
+    .role-info-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;
+      margin: 1rem 0; font-size: 0.82rem;
+    }
+    .role-info-card { background: var(--card); border-radius: 8px; padding: 0.65rem 0.9rem; border: 1px solid var(--card2); }
+    .role-info-card strong { color: var(--text); }
+
+    /* ── HUB ── */
+    #screen-hub { padding: 0; }
+    .hub-header {
+      background: linear-gradient(135deg, var(--bg2), var(--bg3));
+      padding: 1.25rem 1.75rem;
+      border-bottom: 1px solid var(--card2);
+    }
+    .hub-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .guild-name { font-size: 1.5rem; font-weight: 700; }
+    .guild-meta { color: var(--accent); font-size: 0.85rem; }
+    .day-chip { background: var(--card2); border-radius: 20px; padding: 0.25rem 0.75rem; font-size: 0.8rem; color: var(--text2); }
+    .xp-bar-wrap { }
+    .xp-label { font-size: 0.75rem; color: var(--text2); margin-bottom: 4px; display: flex; justify-content: space-between; }
+    .xp-bar { height: 7px; background: var(--card2); border-radius: 4px; overflow: hidden; }
+    .xp-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.5s ease; }
+    .hub-nav { display: flex; gap: 0.5rem; padding: 0.9rem 1.75rem; border-bottom: 1px solid var(--card2); flex-wrap: wrap; align-items: center; }
+    .hub-nav-right { margin-left: auto; }
+    .hub-content { flex: 1; padding: 1.5rem 1.75rem; overflow-y: auto; }
+    .section-label { font-size: 0.8rem; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.9rem; }
+    .members-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1rem; }
+    .member-card {
+      background: var(--card); border-radius: 12px; padding: 1.1rem;
+      border: 1px solid var(--card2); position: relative; overflow: hidden;
+    }
+    .member-card::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--role-color, var(--accent));
+    }
+    .member-role-badge {
+      font-size: 0.72rem; padding: 2px 8px; border-radius: 20px; font-weight: 600;
+      margin-bottom: 0.5rem; display: inline-block;
+      background: var(--role-bg, rgba(79,142,247,0.15));
+      color: var(--role-color, var(--accent));
+    }
+    .member-name { font-weight: 700; font-size: 1rem; }
+    .member-level { color: var(--text2); font-size: 0.82rem; margin-bottom: 0.6rem; }
+    .stat-row { display: flex; gap: 0.6rem; margin-top: 0.6rem; flex-wrap: wrap; }
+    .stat-chip { font-size: 0.75rem; color: var(--text2); }
+    .stat-chip b { color: var(--text); font-weight: 600; }
+    .mini-bar-wrap { margin: 0.25rem 0; }
+    .mini-bar { height: 5px; background: var(--card2); border-radius: 3px; overflow: hidden; margin-top: 2px; }
+    .mini-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+
+    /* ── ACTIVITIES ── */
+    #screen-activities { padding: 0; }
+    .screen-inner { padding: 4.5rem 1.75rem 2rem; flex: 1; }
+    .activities-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.9rem; margin-top: 1.25rem; }
+    .activity-card {
+      background: var(--card); border-radius: 12px; padding: 1.1rem;
+      border: 1px solid var(--card2); display: flex; align-items: center; gap: 1rem;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .activity-card:hover:not(.done) { border-color: var(--accent); transform: translateY(-2px); }
+    .activity-card.done { opacity: 0.5; cursor: default; filter: grayscale(0.5); }
+    .activity-emoji { font-size: 2rem; flex-shrink: 0; }
+    .activity-name { font-weight: 600; margin-bottom: 0.2rem; font-size: 0.95rem; }
+    .activity-desc { font-size: 0.78rem; color: var(--text2); margin-bottom: 0.25rem; }
+    .activity-xp { color: var(--accent); font-size: 0.82rem; font-weight: 600; }
+    .activity-done { color: var(--success); font-size: 0.82rem; font-weight: 600; }
+
+    /* ── PARTY SELECT ── */
+    #screen-party { padding: 0; align-items: center; }
+    .party-inner { padding: 4.5rem 1.75rem 2rem; width: 100%; max-width: 820px; }
+    .party-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 0.9rem; margin: 1.25rem 0; }
+    .party-card {
+      background: var(--card); border: 2px solid var(--card2); border-radius: 12px;
+      padding: 1rem; cursor: pointer; transition: all 0.2s; text-align: center;
+    }
+    .party-card.selected { border-color: var(--accent); background: rgba(79,142,247,0.08); }
+    .party-card:hover:not(.selected) { border-color: var(--accent2); }
+    .party-card .slot-label { font-size: 0.72rem; color: var(--text2); min-height: 1rem; margin-bottom: 0.3rem; }
+    .party-card .slot-label.active { color: var(--accent); font-weight: 600; }
+    .party-card .pc-emoji { font-size: 2rem; margin: 0.25rem 0; }
+    .party-card .pc-name { font-weight: 700; font-size: 0.95rem; }
+    .party-card .pc-meta { font-size: 0.78rem; color: var(--text2); }
+
+    /* ── BATTLE ── */
+    #screen-battle { padding: 0.9rem; gap: 0.75rem; }
+    .wave-banner {
+      text-align: center; font-size: 0.85rem; color: var(--text2);
+      padding: 0.4rem; border-radius: 8px; background: var(--card);
+      border: 1px solid var(--card2);
+    }
+    .combatant-area { display: flex; flex-direction: column; gap: 0.6rem; }
+    .combatant-section-label { font-size: 0.7rem; color: var(--text2); text-align: center; text-transform: uppercase; letter-spacing: 1px; }
+    .combatant-row { display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: center; }
+    .combatant-card {
+      background: var(--card); border-radius: 10px; padding: 0.65rem;
+      border: 2px solid var(--card2); min-width: 110px; max-width: 160px;
+      text-align: center; transition: border-color 0.2s; position: relative; flex: 1;
+    }
+    .combatant-card.active-turn { border-color: var(--warning); box-shadow: 0 0 10px rgba(247,201,79,0.2); }
+    .combatant-card.defeated { opacity: 0.3; filter: grayscale(1); }
+    .combatant-card.boss-card { border-color: var(--accent3); }
+    .cc-emoji { font-size: 1.9rem; }
+    .cc-name { font-size: 0.75rem; font-weight: 600; margin: 0.2rem 0 0.1rem; line-height: 1.2; }
+    .cc-hp { font-size: 0.68rem; color: var(--text2); }
+    .hp-bar { height: 5px; background: var(--card2); border-radius: 3px; overflow: hidden; margin-top: 3px; }
+    .hp-fill { height: 100%; border-radius: 3px; transition: width 0.35s ease; background: var(--success); }
+    .hp-fill.low { background: var(--warning); }
+    .hp-fill.critical { background: var(--danger); }
+    .status-row { display: flex; gap: 2px; justify-content: center; margin-top: 3px; flex-wrap: wrap; }
+    .sbadge { font-size: 0.6rem; padding: 1px 4px; border-radius: 8px; }
+    .sbadge-burn { background: rgba(247,79,79,0.25); color: var(--danger); }
+    .sbadge-stun { background: rgba(247,201,79,0.25); color: var(--warning); }
+    .sbadge-shield { background: rgba(79,142,247,0.25); color: var(--accent); }
+    .sbadge-regen { background: rgba(79,216,160,0.25); color: var(--success); }
+    .vs-line { text-align: center; font-size: 1.2rem; font-weight: 900; color: var(--accent3); }
+    .battle-log {
+      background: var(--card); border: 1px solid var(--card2); border-radius: 10px;
+      padding: 0.65rem 0.9rem; height: 90px; overflow-y: auto; font-size: 0.78rem;
+    }
+    .battle-log p { margin-bottom: 2px; color: var(--text2); }
+    .log-dmg { color: var(--danger) !important; }
+    .log-heal { color: var(--success) !important; }
+    .log-special { color: var(--accent2) !important; }
+    .log-sys { color: var(--text2) !important; font-style: italic; }
+    .log-wave { color: var(--warning) !important; font-weight: 600; }
+    .action-panel {
+      background: var(--card); border-radius: 12px; padding: 0.9rem;
+      border: 1px solid var(--card2);
+    }
+    .action-header { font-size: 0.82rem; color: var(--text2); margin-bottom: 0.65rem; }
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; }
+    .action-btn {
+      padding: 0.55rem 0.5rem; border: 1px solid var(--card2);
+      border-radius: 8px; background: var(--card2); color: var(--text);
+      cursor: pointer; font-size: 0.8rem; font-weight: 600;
+      transition: all 0.15s; text-align: center; line-height: 1.3;
+    }
+    .action-btn:hover:not(:disabled) { border-color: var(--accent); background: rgba(79,142,247,0.12); }
+    .action-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .action-btn.ability-btn { border-color: var(--accent2); }
+    .action-btn.defend-btn { border-color: var(--text2); }
+
+    /* ── RESULT ── */
+    #screen-result {
+      align-items: center; justify-content: center; text-align: center; padding: 2.5rem 1.5rem;
+      background: radial-gradient(ellipse at center, #1a1a4e 0%, var(--bg) 70%);
+    }
+    .result-icon { font-size: 5rem; margin-bottom: 0.75rem; }
+    .result-title { font-size: 2.5rem; font-weight: 900; margin-bottom: 0.5rem; }
+    .result-title.victory { color: var(--success); }
+    .result-title.defeat { color: var(--danger); }
+    .result-sub { color: var(--text2); margin-bottom: 1.75rem; font-size: 0.95rem; max-width: 400px; }
+    .reward-box {
+      background: var(--card); border-radius: 12px; padding: 1.25rem;
+      margin-bottom: 1.75rem; border: 1px solid var(--card2); min-width: 280px; max-width: 380px; width: 100%;
+    }
+    .reward-box h3 { margin-bottom: 0.75rem; font-size: 1rem; }
+    .reward-row {
+      display: flex; justify-content: space-between;
+      padding: 0.38rem 0; border-bottom: 1px solid var(--card2);
+      font-size: 0.88rem;
+    }
+    .reward-row:last-child { border-bottom: none; }
+    .reward-amount { color: var(--accent); font-weight: 700; }
+    .result-btns { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; }
+
+    /* ── BACK BUTTON ── */
+    .back-btn {
+      position: fixed; top: 0.9rem; left: 0.9rem;
+      background: var(--card); border: 1px solid var(--card2);
+      border-radius: 8px; color: var(--text);
+      padding: 0.4rem 0.9rem; cursor: pointer; font-size: 0.82rem;
+      z-index: 100; font-family: inherit;
+      transition: background 0.15s;
+    }
+    .back-btn:hover { background: var(--card2); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+    @keyframes fadeUp { 0%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-36px)} }
+    @keyframes slideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    .shake { animation: shake 0.3s; }
+    .slide-in { animation: slideIn 0.3s ease; }
+    .float-dmg {
+      position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+      font-weight: 900; font-size: 1rem; animation: fadeUp 0.9s ease-out forwards;
+      pointer-events: none; z-index: 20; color: var(--danger);
+    }
+    .float-heal { color: var(--success); }
+
+    /* ── NOTIFICATION ── */
+    .notif {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: var(--card); border: 1px solid var(--card2);
+      border-radius: 10px; padding: 0.75rem 1.1rem;
+      font-size: 0.88rem; font-weight: 600; z-index: 1000;
+      animation: slideIn 0.3s ease, fadeUp 0.5s ease 2s forwards;
+      pointer-events: none; max-width: 320px;
+    }
+    .notif-xp { border-color: var(--accent); color: var(--accent); }
+    .notif-level { border-color: var(--warning); color: var(--warning); }
+    .notif-info { border-color: var(--text2); color: var(--text); }
+
+    @media (max-width: 520px) {
+      .hub-header, .hub-nav, .hub-content { padding-left: 1rem; padding-right: 1rem; }
+      .combatant-card { min-width: 85px; }
+      .cc-emoji { font-size: 1.5rem; }
+      .action-grid { grid-template-columns: 1fr 1fr; }
+      .role-info-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     TITLE
+════════════════════════════════════════ -->
+<div id="screen-title" class="screen active">
+  <div class="stars"></div>
+  <div class="title-content">
+    <div class="game-logo">⚔️ FamilyQuest</div>
+    <div class="game-subtitle">The Connected Realm</div>
+    <p class="title-tagline">
+      Form your family guild. Level up through everyday life.
+      Battle rogue AI clone armies threatening your Connected Realm.
+    </p>
+    <div class="title-btns">
+      <button class="btn btn-primary" onclick="Game.startNew()">⚔️ New Guild</button>
+      <button class="btn btn-secondary" id="btn-continue" style="display:none" onclick="Game.loadAndContinue()">▶ Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SETUP
+════════════════════════════════════════ -->
+<div id="screen-setup" class="screen">
+  <div class="setup-container" style="padding: 2rem 1rem;">
+    <h2>Create Your Family Guild</h2>
+    <p class="hint">Name your guild, add up to 6 family members, and choose each hero's role. You can add more members later.</p>
+
+    <label class="field-label">Guild Name</label>
+    <input type="text" id="guild-name-input" class="input-field" placeholder="e.g. House Dorset" maxlength="30">
+
+    <div style="margin-top:1.5rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;">
+        <span class="field-label" style="margin:0;">Members <span id="member-count">0</span>/6</span>
+        <button class="btn btn-secondary btn-sm" onclick="Setup.addMember()" id="btn-add-member">+ Add Member</button>
+      </div>
+      <div class="member-list" id="member-list"></div>
+    </div>
+
+    <div class="role-info-grid" style="margin-top:1.25rem;">
+      <div class="role-info-card">⚔️ <strong>Warrior</strong> — High HP &amp; defense. <em>Shield Bash</em>: stun + heavy hit.</div>
+      <div class="role-info-card">🔮 <strong>Mage</strong> — High damage. <em>Fireball</em>: burns all enemies.</div>
+      <div class="role-info-card">💚 <strong>Healer</strong> — Support. <em>Restore</em>: heals &amp; regens whole party.</div>
+      <div class="role-info-card">🏃 <strong>Scout</strong> — Fast &amp; agile. <em>Double Strike</em>: attacks twice.</div>
+    </div>
+
+    <button class="btn btn-primary" onclick="Setup.confirm()" style="width:100%;margin-top:1rem;">Found Guild ⚔️</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     HUB
+════════════════════════════════════════ -->
+<div id="screen-hub" class="screen">
+  <div class="hub-header">
+    <div class="hub-top">
+      <div>
+        <div class="guild-meta" id="hub-guild-meta"></div>
+        <div class="guild-name" id="hub-guild-name"></div>
+      </div>
+      <div class="day-chip" id="hub-day">Day 1</div>
+    </div>
+    <div class="xp-bar-wrap">
+      <div class="xp-label"><span>Guild XP</span><span id="hub-xp-label"></span></div>
+      <div class="xp-bar"><div class="xp-fill" id="hub-xp-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="hub-nav">
+    <button class="btn btn-secondary btn-sm" onclick="UI.gotoActivities()">📋 Daily Activities</button>
+    <button class="btn btn-primary btn-sm" onclick="UI.gotoParty()">⚔️ Raid</button>
+    <div class="hub-nav-right">
+      <button class="btn btn-secondary btn-sm" onclick="Game.newDay()">🌅 New Day</button>
+    </div>
+  </div>
+
+  <div class="hub-content">
+    <div class="section-label">Your Heroes</div>
+    <div class="members-grid" id="members-grid"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     ACTIVITIES
+════════════════════════════════════════ -->
+<div id="screen-activities" class="screen">
+  <button class="back-btn" onclick="showScreen('hub')">← Back</button>
+  <div class="screen-inner">
+    <h2>Daily Activities</h2>
+    <p class="hint">Log real-life family activities to earn Guild XP and level up your heroes. Each resets every new day.</p>
+    <div class="activities-grid" id="activities-grid"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PARTY SELECT
+════════════════════════════════════════ -->
+<div id="screen-party" class="screen">
+  <button class="back-btn" onclick="showScreen('hub')">← Back</button>
+  <div class="party-inner">
+    <h2>Assemble Your Party</h2>
+    <p class="hint">Choose up to 4 heroes for the raid. Balance your team with a Healer or tanky Warrior!</p>
+    <div class="party-grid" id="party-grid"></div>
+    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+      <button class="btn btn-primary" id="btn-launch-raid" onclick="Battle.launch()" disabled>⚔️ Launch Raid</button>
+      <button class="btn btn-secondary" onclick="showScreen('hub')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     BATTLE
+════════════════════════════════════════ -->
+<div id="screen-battle" class="screen">
+  <div class="wave-banner" id="wave-banner">⚡ Preparing raid…</div>
+
+  <div class="combatant-area">
+    <div class="combatant-section-label">— Enemies —</div>
+    <div class="combatant-row" id="enemy-row"></div>
+  </div>
+
+  <div class="vs-line">⚡ VS ⚡</div>
+
+  <div class="combatant-area">
+    <div class="combatant-section-label">— Your Party —</div>
+    <div class="combatant-row" id="party-row"></div>
+  </div>
+
+  <div class="battle-log" id="battle-log"></div>
+
+  <div class="action-panel">
+    <div class="action-header" id="action-header">…</div>
+    <div class="action-grid" id="action-grid"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     RESULT
+════════════════════════════════════════ -->
+<div id="screen-result" class="screen">
+  <div class="result-icon" id="result-icon">🏆</div>
+  <div class="result-title" id="result-title">Victory!</div>
+  <div class="result-sub" id="result-sub"></div>
+  <div class="reward-box" id="reward-box"></div>
+  <div class="result-btns">
+    <button class="btn btn-primary" onclick="showScreen('hub');UI.renderHub()">🏰 Guild Hall</button>
+    <button class="btn btn-secondary" onclick="UI.gotoParty()">⚔️ Raid Again</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════
+const ROLES = {
+  Warrior: { emoji: '⚔️', color: '#e74c3c', bg: 'rgba(231,76,60,0.15)',
+    base: { hp: 120, attack: 15, defense: 12, speed: 8 },
+    ability: 'Shield Bash', abilityDesc: 'Stun + heavy hit one enemy' },
+  Mage:    { emoji: '🔮', color: '#9b59b6', bg: 'rgba(155,89,182,0.15)',
+    base: { hp: 75, attack: 22, defense: 5, speed: 10 },
+    ability: 'Fireball', abilityDesc: 'Hit all enemies + apply burn' },
+  Healer:  { emoji: '💚', color: '#2ecc71', bg: 'rgba(46,204,113,0.15)',
+    base: { hp: 95, attack: 10, defense: 9, speed: 9 },
+    ability: 'Restore', abilityDesc: 'Heal + regen the whole party' },
+  Scout:   { emoji: '🏃', color: '#f39c12', bg: 'rgba(243,156,18,0.15)',
+    base: { hp: 85, attack: 18, defense: 7, speed: 15 },
+    ability: 'Double Strike', abilityDesc: 'Attack the same enemy twice' }
+};
+
+const ACTIVITIES = [
+  { id: 'cook',     name: 'Cook a meal together',    emoji: '🍳', xp: 50, desc: 'Feed the guild, fuel the realm!' },
+  { id: 'exercise', name: 'Family exercise session', emoji: '🏃', xp: 75, desc: 'Train your bodies, boost your stats!' },
+  { id: 'gamenight',name: 'Family game night',       emoji: '🎲', xp: 60, desc: 'Teamwork makes the dream work!' },
+  { id: 'cleanup',  name: 'House cleanup sprint',    emoji: '🧹', xp: 40, desc: 'Order at home, power in battle!' },
+  { id: 'movie',    name: 'Movie/show night',        emoji: '🎬', xp: 35, desc: 'Rest is part of the grind.' },
+  { id: 'outdoor',  name: 'Outdoor adventure',       emoji: '🌳', xp: 80, desc: 'Nature fuels the Connected Realm!' },
+  { id: 'craft',    name: 'Arts & crafts',           emoji: '🎨', xp: 45, desc: 'Creativity unlocks hidden powers!' },
+  { id: 'learning', name: 'Learning session',        emoji: '📚', xp: 65, desc: 'Knowledge is the sharpest weapon!' }
+];
+
+const WAVES = [
+  {
+    label: 'Wave 1 — Scout Bots',
+    enemies: [
+      { name: 'Clone-Bot α', hp: 55, attack: 11, defense: 4, speed: 7,  emoji: '🤖', xp: 25 },
+      { name: 'Shield Drone',hp: 85, attack: 7,  defense: 14,speed: 5,  emoji: '🛡️', xp: 30 },
+      { name: 'Blaster Mk1', hp: 45, attack: 17, defense: 3, speed: 10, emoji: '💥', xp: 28 }
+    ]
+  },
+  {
+    label: 'Wave 2 — Assault Force',
+    enemies: [
+      { name: 'Clone-Bot β', hp: 80, attack: 14, defense: 7, speed: 9,  emoji: '🤖', xp: 38 },
+      { name: 'Medic Unit',  hp: 65, attack: 6,  defense: 8, speed: 6,  emoji: '💉', xp: 33, isHealer: true },
+      { name: 'Blaster Mk2', hp: 60, attack: 20, defense: 4, speed: 12, emoji: '💥', xp: 40 },
+      { name: 'Tank Mech',   hp:115, attack: 10, defense: 18,speed: 4,  emoji: '🦾', xp: 45 }
+    ]
+  },
+  {
+    label: '⚠️ BOSS — OverMind',
+    enemies: [
+      { name: 'OVERMIND',    hp:320, attack: 27, defense: 14,speed: 10, emoji: '👾', xp: 200, isBoss: true }
+    ]
+  }
+];
+
+const XP_PER_LEVEL = 150;
+const STAT_GROWTH  = { hp: 12, attack: 2, defense: 1, speed: 0.4 };
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+const State = {
+  guild: null,
+  partySelection: [],   // indexes into guild.members
+
+  save()  { localStorage.setItem('fq2_save', JSON.stringify(this.guild)); },
+  load()  {
+    try {
+      const d = localStorage.getItem('fq2_save');
+      if (d) { this.guild = JSON.parse(d); return true; }
+    } catch(e) {}
+    return false;
+  },
+  clear() { localStorage.removeItem('fq2_save'); this.guild = null; this.partySelection = []; }
+};
+
+// ══════════════════════════════════════════════════════
+// GAME
+// ══════════════════════════════════════════════════════
+const Game = {
+  startNew() { State.clear(); Setup.init(); showScreen('setup'); },
+
+  loadAndContinue() { UI.renderHub(); showScreen('hub'); },
+
+  newDay() {
+    if (!State.guild) return;
+    State.guild.completedActivities = [];
+    State.guild.day = (State.guild.day || 1) + 1;
+    // Restore all member HP
+    State.guild.members.forEach(m => { m.hp = m.maxHp; });
+    State.save();
+    UI.renderHub();
+    toast('🌅 New day begun! Activities refreshed & party healed.', 'notif-info');
+  },
+
+  xpToNextLevel(level) { return XP_PER_LEVEL * level; },
+
+  addGuildXp(amount) {
+    const g = State.guild;
+    g.xp += amount;
+    let leveled = false;
+    while (g.xp >= this.xpToNextLevel(g.level)) {
+      g.xp -= this.xpToNextLevel(g.level);
+      g.level++;
+      leveled = true;
+    }
+    if (leveled) toast(`🎉 Guild leveled up! Now Level ${g.level}!`, 'notif-level');
+    State.save();
+  },
+
+  addMemberXp(member, amount) {
+    member.xp += amount;
+    while (member.xp >= this.xpToNextLevel(member.level)) {
+      member.xp -= this.xpToNextLevel(member.level);
+      member.level++;
+      member.maxHp    += STAT_GROWTH.hp;
+      member.attack   += STAT_GROWTH.attack;
+      member.defense  += STAT_GROWTH.defense;
+      member.speed    += STAT_GROWTH.speed;
+      member.hp = member.maxHp;
+      toast(`⬆️ ${member.name} reached Level ${member.level}!`, 'notif-level');
+    }
+    State.save();
+  }
+};
+
+// ══════════════════════════════════════════════════════
+// SETUP
+// ══════════════════════════════════════════════════════
+const Setup = {
+  rows: [],   // { id, name, role }
+
+  init() {
+    this.rows = [];
+    document.getElementById('guild-name-input').value = '';
+    this.render();
+  },
+
+  addMember() {
+    if (this.rows.length >= 6) return;
+    this.rows.push({ id: Date.now() + Math.random(), name: '', role: 'Warrior' });
+    this.render();
+  },
+
+  remove(id) { this.rows = this.rows.filter(r => r.id !== id); this.render(); },
+  setName(id, v) { const r = this.rows.find(r => r.id === id); if (r) r.name = v; },
+  setRole(id, v) { const r = this.rows.find(r => r.id === id); if (r) { r.role = v; this.render(); } },
+
+  render() {
+    const list = document.getElementById('member-list');
+    document.getElementById('member-count').textContent = this.rows.length;
+    document.getElementById('btn-add-member').disabled = this.rows.length >= 6;
+    list.innerHTML = this.rows.map(r => `
+      <div class="member-row">
+        <span style="font-size:1.15rem;width:1.5rem;text-align:center;flex-shrink:0">${ROLES[r.role].emoji}</span>
+        <input type="text" class="input-field" placeholder="Name" maxlength="18"
+          value="${escHtml(r.name)}"
+          oninput="Setup.setName(${r.id}, this.value)"
+          style="flex:1;min-width:0">
+        <select class="role-select" onchange="Setup.setRole(${r.id}, this.value)">
+          ${Object.keys(ROLES).map(role =>
+            `<option value="${role}" ${role===r.role?'selected':''}>${role}</option>`
+          ).join('')}
+        </select>
+        <button class="remove-btn" onclick="Setup.remove(${r.id})">✕</button>
+      </div>`
+    ).join('');
+  },
+
+  confirm() {
+    const name = document.getElementById('guild-name-input').value.trim();
+    if (!name)              return alert('Please enter a guild name!');
+    if (!this.rows.length)  return alert('Add at least one member!');
+    const valid = this.rows.filter(r => r.name.trim());
+    if (!valid.length)      return alert('Give your members names!');
+
+    State.guild = {
+      name, level: 1, xp: 0, day: 1,
+      completedActivities: [],
+      totalRaidsWon: 0,
+      members: valid.map(r => {
+        const base = ROLES[r.role].base;
+        return {
+          name: r.name.trim(), role: r.role,
+          level: 1, xp: 0,
+          hp: base.hp, maxHp: base.hp,
+          attack: base.attack, defense: base.defense, speed: base.speed
+        };
+      })
+    };
+    State.save();
+    UI.renderHub();
+    showScreen('hub');
+    toast(`🏰 Guild "${name}" founded! Welcome to the Connected Realm!`, 'notif-info');
+  }
+};
+
+// ══════════════════════════════════════════════════════
+// UI
+// ══════════════════════════════════════════════════════
+const UI = {
+  renderHub() {
+    const g = State.guild;
+    if (!g) return;
+    document.getElementById('hub-guild-name').textContent = '🏰 ' + g.name;
+    document.getElementById('hub-guild-meta').textContent = `Guild  •  Level ${g.level}`;
+    document.getElementById('hub-day').textContent = `Day ${g.day || 1}`;
+
+    const needed = Game.xpToNextLevel(g.level);
+    const pct = Math.min(100, (g.xp / needed) * 100).toFixed(1);
+    document.getElementById('hub-xp-label').textContent = `${g.xp} / ${needed}`;
+    document.getElementById('hub-xp-fill').style.width = pct + '%';
+
+    document.getElementById('members-grid').innerHTML = g.members.map(m => {
+      const role = ROLES[m.role];
+      const hpPct  = Math.max(0, Math.min(100, (m.hp / m.maxHp) * 100));
+      const xpPct  = Math.min(100, (m.xp / Game.xpToNextLevel(m.level)) * 100);
+      const hpColor = hpPct > 50 ? 'var(--success)' : hpPct > 25 ? 'var(--warning)' : 'var(--danger)';
+      return `
+        <div class="member-card slide-in" style="--role-color:${role.color};--role-bg:${role.bg}">
+          <span class="member-role-badge">${role.emoji} ${m.role}</span>
+          <div class="member-name">${escHtml(m.name)}</div>
+          <div class="member-level">Level ${m.level}</div>
+          <div class="mini-bar-wrap">
+            <div style="font-size:0.7rem;color:var(--text2)">❤️ ${Math.round(m.hp)}/${Math.round(m.maxHp)}</div>
+            <div class="mini-bar"><div class="mini-fill" style="width:${hpPct}%;background:${hpColor}"></div></div>
+          </div>
+          <div class="mini-bar-wrap">
+            <div style="font-size:0.7rem;color:var(--text2)">XP ${m.xp} / ${Game.xpToNextLevel(m.level)}</div>
+            <div class="mini-bar"><div class="mini-fill" style="width:${xpPct}%;background:var(--accent)"></div></div>
+          </div>
+          <div class="stat-row">
+            <span class="stat-chip">⚔️ <b>${Math.round(m.attack)}</b></span>
+            <span class="stat-chip">🛡️ <b>${Math.round(m.defense)}</b></span>
+            <span class="stat-chip">💨 <b>${Math.round(m.speed)}</b></span>
+          </div>
+        </div>`;
+    }).join('');
+  },
+
+  renderActivities() {
+    const g = State.guild;
+    document.getElementById('activities-grid').innerHTML = ACTIVITIES.map(a => {
+      const done = g.completedActivities.includes(a.id);
+      return `
+        <div class="activity-card ${done ? 'done' : ''}" onclick="${done ? '' : `doActivity('${a.id}')`}">
+          <div class="activity-emoji">${a.emoji}</div>
+          <div>
+            <div class="activity-name">${a.name}</div>
+            <div class="activity-desc">${a.desc}</div>
+            ${done
+              ? '<div class="activity-done">✓ Done today</div>'
+              : `<div class="activity-xp">+${a.xp} Guild XP &nbsp;·&nbsp; +${Math.floor(a.xp*0.3)} Member XP each</div>`
+            }
+          </div>
+        </div>`;
+    }).join('');
+  },
+
+  renderPartySelect() {
+    const g = State.guild;
+    State.partySelection = [];
+    document.getElementById('party-grid').innerHTML = g.members.map((m, i) => {
+      const role = ROLES[m.role];
+      return `
+        <div class="party-card" id="pcard-${i}" onclick="toggleParty(${i})">
+          <div class="slot-label" id="pslot-${i}">Click to add</div>
+          <div class="pc-emoji">${role.emoji}</div>
+          <div class="pc-name">${escHtml(m.name)}</div>
+          <div class="pc-meta">${m.role} · Lv ${m.level}</div>
+          <div class="pc-meta" style="margin-top:3px">❤️ ${Math.round(m.hp)}/${Math.round(m.maxHp)}</div>
+        </div>`;
+    }).join('');
+    document.getElementById('btn-launch-raid').disabled = true;
+  },
+
+  gotoActivities() { this.renderActivities(); showScreen('activities'); },
+  gotoParty()      { this.renderPartySelect(); showScreen('party'); }
+};
+
+function toggleParty(idx) {
+  const sel = State.partySelection;
+  const pos = sel.indexOf(idx);
+  if (pos === -1) {
+    if (sel.length >= 4) { sel.shift(); }
+    sel.push(idx);
+  } else {
+    sel.splice(pos, 1);
+  }
+  // Update UI
+  State.guild.members.forEach((_, i) => {
+    const card  = document.getElementById('pcard-' + i);
+    const label = document.getElementById('pslot-' + i);
+    const p = sel.indexOf(i);
+    if (p !== -1) {
+      card.classList.add('selected');
+      label.textContent = `Slot ${p + 1}`;
+      label.classList.add('active');
+    } else {
+      card.classList.remove('selected');
+      label.textContent = 'Click to add';
+      label.classList.remove('active');
+    }
+  });
+  document.getElementById('btn-launch-raid').disabled = sel.length === 0;
+}
+
+function doActivity(id) {
+  const a = ACTIVITIES.find(x => x.id === id);
+  if (!a || State.guild.completedActivities.includes(id)) return;
+  State.guild.completedActivities.push(id);
+  Game.addGuildXp(a.xp);
+  const memberXp = Math.floor(a.xp * 0.3);
+  State.guild.members.forEach(m => Game.addMemberXp(m, memberXp));
+  UI.renderActivities();
+  toast(`${a.emoji} +${a.xp} Guild XP from "${a.name}"!`, 'notif-xp');
+}
+
+// ══════════════════════════════════════════════════════
+// BATTLE
+// ══════════════════════════════════════════════════════
+const Battle = {
+  st: null,   // battle state
+
+  launch() {
+    if (!State.partySelection.length) return;
+
+    const party = State.partySelection.map((memberIdx, slotIdx) => {
+      const m = State.guild.members[memberIdx];
+      return {
+        name: m.name, role: m.role,
+        attack: m.attack, defense: m.defense, speed: m.speed,
+        maxHp: m.maxHp, currentHp: m.hp,
+        statuses: [], cooldown: 0,
+        memberIdx, slotIdx,
+        isPlayer: true
+      };
+    });
+
+    this.st = {
+      party, wave: 0, enemies: [],
+      turnOrder: [], turnIdx: 0,
+      xpEarned: 0, over: false
+    };
+
+    showScreen('battle');
+    this._startWave(0);
+  },
+
+  _enemyClone(template) {
+    return { ...template, currentHp: template.hp, maxHp: template.hp, statuses: [], isPlayer: false };
+  },
+
+  _startWave(wIdx) {
+    const s = this.st;
+    s.wave = wIdx;
+    s.enemies = WAVES[wIdx].enemies.map(e => this._enemyClone(e));
+    document.getElementById('wave-banner').innerHTML =
+      `⚡ ${WAVES[wIdx].label} &nbsp;·&nbsp; Wave ${wIdx + 1} of ${WAVES.length}`;
+
+    // Partial heal between waves
+    if (wIdx > 0) {
+      s.party.forEach(p => {
+        if (p.currentHp > 0) p.currentHp = Math.min(p.maxHp, p.currentHp + Math.floor(p.maxHp * 0.3));
+      });
+      this._log(`💊 Party restored 30% HP before wave ${wIdx+1}.`, 'log-heal');
+    }
+
+    this._buildOrder();
+    this._log(`⚡ ${WAVES[wIdx].label} begins!`, 'log-wave');
+    this._render();
+    setTimeout(() => this._tick(), 300);
+  },
+
+  _buildOrder() {
+    const s = this.st;
+    const all = [
+      ...s.party.map((p,i) => ({ team:'party', idx:i, speed:p.speed })),
+      ...s.enemies.map((e,i) => ({ team:'enemy', idx:i, speed:e.speed }))
+    ].sort((a,b) => b.speed - a.speed);
+    s.turnOrder = all;
+    s.turnIdx = 0;
+  },
+
+  _tick() {
+    const s = this.st;
+    if (s.over) return;
+
+    const alive = { p: s.party.filter(m => m.currentHp > 0), e: s.enemies.filter(e => e.currentHp > 0) };
+
+    if (!alive.p.length) { this._end(false); return; }
+    if (!alive.e.length) {
+      const waveXp = s.enemies.reduce((t,e) => t + e.xp, 0);
+      s.xpEarned += waveXp;
+      this._log(`✅ Wave cleared! +${waveXp} XP earned.`, 'log-heal');
+      this._render();
+      if (s.wave < WAVES.length - 1) {
+        setTimeout(() => this._startWave(s.wave + 1), 1400);
+      } else {
+        setTimeout(() => this._end(true), 1400);
+      }
+      return;
+    }
+
+    // Advance turn order
+    let actor = null;
+    let tries = 0;
+    while (!actor && tries < s.turnOrder.length * 2) {
+      const slot = s.turnOrder[s.turnIdx % s.turnOrder.length];
+      s.turnIdx++;
+      tries++;
+      const real = slot.team === 'party' ? s.party[slot.idx] : s.enemies[slot.idx];
+      if (real && real.currentHp > 0) actor = { team: slot.team, idx: slot.idx, data: real };
+    }
+    if (!actor) { this._tick(); return; }
+
+    // Status tick
+    this._tickStatuses(actor.data, actor.team === 'party' ? actor.data.maxHp : actor.data.maxHp);
+
+    if (actor.data.statuses.includes('stun')) {
+      actor.data.statuses = actor.data.statuses.filter(s => s !== 'stun');
+      this._log(`😵 ${actor.data.name} is stunned and skips their turn!`, 'log-sys');
+      this._render();
+      setTimeout(() => this._tick(), 500);
+      return;
+    }
+
+    if (actor.team === 'party') {
+      this._render();
+      this._showActions(actor.idx);
+    } else {
+      this._render();
+      setTimeout(() => this._enemyAct(actor.idx), 650);
+    }
+  },
+
+  _tickStatuses(unit, maxHp) {
+    if (unit.statuses.includes('burn')) {
+      const dmg = Math.max(1, Math.floor(maxHp * 0.05));
+      unit.currentHp = Math.max(0, unit.currentHp - dmg);
+      this._log(`🔥 ${unit.name} burns for ${dmg}!`, 'log-dmg');
+    }
+    if (unit.statuses.includes('regen')) {
+      const heal = Math.max(1, Math.floor(maxHp * 0.07));
+      unit.currentHp = Math.min(maxHp, unit.currentHp + heal);
+      this._log(`💚 ${unit.name} regenerates ${heal} HP.`, 'log-heal');
+    }
+    // decay
+    unit.statuses = unit.statuses.filter(s => {
+      if (s === 'stun') return false;
+      return Math.random() > 0.35;
+    });
+  },
+
+  _showActions(pIdx) {
+    const m  = this.st.party[pIdx];
+    const r  = ROLES[m.role];
+    const alive = this.st.enemies.filter(e => e.currentHp > 0);
+
+    document.getElementById('action-header').innerHTML =
+      `${r.emoji} <strong>${escHtml(m.name)}</strong>'s turn — choose an action:`;
+
+    const targetBtns = alive.map(e => {
+      const eIdx = this.st.enemies.indexOf(e);
+      return `<button class="action-btn" onclick="Battle._playerAttack(${pIdx},${eIdx})">
+        ${e.emoji} Attack<br><small style="font-weight:400;color:var(--text2)">${escHtml(e.name)}</small>
+      </button>`;
+    }).join('');
+
+    const cd = m.cooldown > 0;
+    const abilityLabel = cd
+      ? `${r.ability} <small>(${m.cooldown})</small>`
+      : `✨ ${r.ability}<br><small style="font-weight:400;color:var(--text2)">${r.abilityDesc}</small>`;
+
+    document.getElementById('action-grid').innerHTML = `
+      ${targetBtns}
+      <button class="action-btn ability-btn" onclick="Battle._playerAbility(${pIdx})" ${cd ? 'disabled' : ''}>${abilityLabel}</button>
+      <button class="action-btn defend-btn" onclick="Battle._playerDefend(${pIdx})">🛡️ Defend<br><small style="font-weight:400;color:var(--text2)">Block next hit</small></button>
+    `;
+
+    // Highlight active hero
+    document.querySelectorAll('.combatant-card').forEach(c => c.classList.remove('active-turn'));
+    const card = document.getElementById(`party-card-${pIdx}`);
+    if (card) card.classList.add('active-turn');
+  },
+
+  _playerAttack(pIdx, eIdx) {
+    const att = this.st.party[pIdx];
+    const def = this.st.enemies[eIdx];
+    if (!def || def.currentHp <= 0) return;
+    const dmg = this._dmg(att.attack, def.defense);
+    def.currentHp = Math.max(0, def.currentHp - dmg);
+    this._log(`⚔️ ${att.name} attacks ${def.name} for ${dmg} damage!`, 'log-dmg');
+    this._shake(`enemy-card-${eIdx}`);
+    if (att.cooldown > 0) att.cooldown--;
+    this._render();
+    setTimeout(() => this._tick(), 450);
+  },
+
+  _playerAbility(pIdx) {
+    const m = this.st.party[pIdx];
+    const s = this.st;
+    m.cooldown = 3;
+
+    switch (m.role) {
+      case 'Warrior': {
+        const targets = s.enemies.filter(e => e.currentHp > 0);
+        if (!targets.length) break;
+        const t = targets[Math.floor(Math.random() * targets.length)];
+        const dmg = this._dmg(m.attack * 1.5, t.defense);
+        t.currentHp = Math.max(0, t.currentHp - dmg);
+        t.statuses.push('stun');
+        this._log(`⚔️ ${m.name} uses Shield Bash! ${t.name} stunned for ${dmg} dmg!`, 'log-special');
+        this._shake(`enemy-card-${s.enemies.indexOf(t)}`);
+        break;
+      }
+      case 'Mage': {
+        s.enemies.forEach((e, i) => {
+          if (e.currentHp <= 0) return;
+          const dmg = this._dmg(m.attack * 0.85, e.defense);
+          e.currentHp = Math.max(0, e.currentHp - dmg);
+          e.statuses.push('burn');
+          this._shake(`enemy-card-${i}`);
+        });
+        this._log(`🔮 ${m.name} casts Fireball! All enemies hit and burning!`, 'log-special');
+        break;
+      }
+      case 'Healer': {
+        s.party.forEach(p => {
+          if (p.currentHp <= 0) return;
+          const heal = Math.floor(p.maxHp * 0.38);
+          p.currentHp = Math.min(p.maxHp, p.currentHp + heal);
+          p.statuses = p.statuses.filter(s => s !== 'burn');
+          p.statuses.push('regen');
+        });
+        this._log(`💚 ${m.name} casts Restore! Party healed and regenerating!`, 'log-special');
+        break;
+      }
+      case 'Scout': {
+        const targets = s.enemies.filter(e => e.currentHp > 0);
+        if (!targets.length) break;
+        const t = targets[Math.floor(Math.random() * targets.length)];
+        const eIdx = s.enemies.indexOf(t);
+        const d1 = this._dmg(m.attack, t.defense);
+        const d2 = this._dmg(m.attack, t.defense);
+        t.currentHp = Math.max(0, t.currentHp - d1 - d2);
+        this._log(`🏃 ${m.name} uses Double Strike! ${d1} + ${d2} on ${t.name}!`, 'log-special');
+        this._shake(`enemy-card-${eIdx}`);
+        break;
+      }
+    }
+
+    this._render();
+    setTimeout(() => this._tick(), 550);
+  },
+
+  _playerDefend(pIdx) {
+    const m = this.st.party[pIdx];
+    m.statuses.push('shield');
+    this._log(`🛡️ ${m.name} takes a defensive stance!`, 'log-sys');
+    if (m.cooldown > 0) m.cooldown--;
+    this._render();
+    setTimeout(() => this._tick(), 350);
+  },
+
+  _enemyAct(eIdx) {
+    const s   = this.st;
+    const e   = s.enemies[eIdx];
+    const alive = s.party.filter(p => p.currentHp > 0);
+    if (!alive.length) { this._end(false); return; }
+
+    // Medic heal
+    if (e.isHealer) {
+      const wounded = s.enemies.filter(x => x.currentHp > 0 && x.currentHp < x.maxHp * 0.8);
+      if (wounded.length) {
+        wounded.sort((a,b) => (a.currentHp/a.maxHp) - (b.currentHp/b.maxHp));
+        const t = wounded[0];
+        const heal = Math.floor(t.maxHp * 0.22);
+        t.currentHp = Math.min(t.maxHp, t.currentHp + heal);
+        this._log(`💉 ${e.name} heals ${t.name} for ${heal} HP!`, 'log-heal');
+        this._render();
+        setTimeout(() => this._tick(), 500);
+        return;
+      }
+    }
+
+    // Boss AoE
+    if (e.isBoss && Math.random() < 0.28) {
+      this._log(`👾 OVERMIND fires EMP BLAST at all heroes!`, 'log-special');
+      alive.forEach((p, pi) => {
+        const shielded = p.statuses.includes('shield');
+        if (shielded) p.statuses = p.statuses.filter(s => s !== 'shield');
+        const dmg = this._dmg(e.attack * 0.65, p.defense * (shielded ? 2 : 1));
+        p.currentHp = Math.max(0, p.currentHp - dmg);
+        this._shake(`party-card-${s.party.indexOf(p)}`);
+      });
+    } else {
+      // Attack weakest hero
+      const target = alive.sort((a,b) => a.currentHp - b.currentHp)[0];
+      const pIdx   = s.party.indexOf(target);
+      const shielded = target.statuses.includes('shield');
+      if (shielded) target.statuses = target.statuses.filter(s => s !== 'shield');
+      const defMul = shielded ? 2.2 : 1;
+      const dmg = this._dmg(e.attack, target.defense * defMul);
+      target.currentHp = Math.max(0, target.currentHp - dmg);
+      this._log(`${e.emoji} ${e.name} attacks ${target.name} for ${dmg}${shielded?' (BLOCKED!)':''}!`, 'log-dmg');
+      this._shake(`party-card-${pIdx}`);
+    }
+
+    this._render();
+    setTimeout(() => this._tick(), 500);
+  },
+
+  _dmg(atk, def) {
+    const base = Math.max(1, atk - def * 0.5);
+    return Math.max(1, Math.floor(base * (0.85 + Math.random() * 0.3)));
+  },
+
+  _log(msg, cls = '') {
+    const log = document.getElementById('battle-log');
+    const p   = document.createElement('p');
+    p.className = cls;
+    p.textContent = msg;
+    log.appendChild(p);
+    log.scrollTop = log.scrollHeight;
+  },
+
+  _shake(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('shake');
+    setTimeout(() => el.classList.remove('shake'), 350);
+  },
+
+  _render() {
+    const s = this.st;
+
+    // Enemies
+    document.getElementById('enemy-row').innerHTML = s.enemies.map((e, i) => {
+      const pct  = Math.max(0, (e.currentHp / e.maxHp) * 100);
+      const cls  = pct > 50 ? '' : pct > 25 ? 'low' : 'critical';
+      const statHtml = (e.statuses||[]).map(st => `<span class="sbadge sbadge-${st}">${st}</span>`).join('');
+      return `<div class="combatant-card${e.currentHp<=0?' defeated':''}${e.isBoss?' boss-card':''}" id="enemy-card-${i}">
+        <div class="cc-emoji">${e.emoji}</div>
+        <div class="cc-name">${escHtml(e.name)}</div>
+        <div class="cc-hp">${Math.max(0,Math.round(e.currentHp))}/${e.maxHp}</div>
+        <div class="hp-bar"><div class="hp-fill ${cls}" style="width:${pct}%"></div></div>
+        ${statHtml ? `<div class="status-row">${statHtml}</div>` : ''}
+      </div>`;
+    }).join('');
+
+    // Party
+    document.getElementById('party-row').innerHTML = s.party.map((m, i) => {
+      const pct  = Math.max(0, (m.currentHp / m.maxHp) * 100);
+      const cls  = pct > 50 ? '' : pct > 25 ? 'low' : 'critical';
+      const statHtml = (m.statuses||[]).map(st => `<span class="sbadge sbadge-${st}">${st}</span>`).join('');
+      return `<div class="combatant-card${m.currentHp<=0?' defeated':''}" id="party-card-${i}">
+        <div class="cc-emoji">${ROLES[m.role].emoji}</div>
+        <div class="cc-name">${escHtml(m.name)}</div>
+        <div class="cc-hp">${Math.max(0,Math.round(m.currentHp))}/${m.maxHp}</div>
+        <div class="hp-bar"><div class="hp-fill ${cls}" style="width:${pct}%"></div></div>
+        ${statHtml ? `<div class="status-row">${statHtml}</div>` : ''}
+      </div>`;
+    }).join('');
+  },
+
+  _end(victory) {
+    const s = this.st;
+    s.over = true;
+
+    if (victory) {
+      Game.addGuildXp(s.xpEarned);
+      const perMember = Math.floor(s.xpEarned / s.party.length);
+      s.party.forEach(p => {
+        const ref = State.guild.members[p.memberIdx];
+        Game.addMemberXp(ref, perMember);
+        ref.hp = Math.max(1, Math.round(p.currentHp));
+      });
+      State.guild.totalRaidsWon = (State.guild.totalRaidsWon || 0) + 1;
+      State.save();
+
+      document.getElementById('result-icon').textContent  = '🏆';
+      const rtEl = document.getElementById('result-title');
+      rtEl.textContent = 'Victory!';
+      rtEl.className   = 'result-title victory';
+      document.getElementById('result-sub').textContent   =
+        `Your family guild defeated all ${WAVES.length} waves of AI clone robots!`;
+
+      document.getElementById('reward-box').innerHTML = `
+        <h3>🎁 Rewards</h3>
+        <div class="reward-row"><span>Guild XP</span><span class="reward-amount">+${s.xpEarned}</span></div>
+        ${s.party.map(p => `
+          <div class="reward-row"><span>${escHtml(p.name)}</span><span class="reward-amount">+${perMember} XP</span></div>
+        `).join('')}
+        <div class="reward-row"><span>Total Raids Won</span><span class="reward-amount">${State.guild.totalRaidsWon}</span></div>
+      `;
+    } else {
+      const partial = Math.floor(s.xpEarned * 0.5);
+      if (partial > 0) {
+        Game.addGuildXp(partial);
+        const pp = Math.floor(partial / Math.max(1, s.party.length));
+        s.party.forEach(p => {
+          const ref = State.guild.members[p.memberIdx];
+          Game.addMemberXp(ref, pp);
+          ref.hp = 1;
+        });
+        State.save();
+      }
+
+      document.getElementById('result-icon').textContent  = '💀';
+      const rtEl = document.getElementById('result-title');
+      rtEl.textContent = 'Defeated';
+      rtEl.className   = 'result-title defeat';
+      document.getElementById('result-sub').textContent   =
+        'Your party was overwhelmed. Train through daily activities and return stronger!';
+
+      document.getElementById('reward-box').innerHTML = `
+        <h3>Consolation</h3>
+        <div class="reward-row"><span>Guild XP (50%)</span><span class="reward-amount">+${partial}</span></div>
+        <div style="font-size:0.82rem;color:var(--text2);margin-top:0.75rem;line-height:1.5">
+          💡 <strong>Tip:</strong> Complete daily activities for bonus XP, then try again!
+        </div>
+      `;
+    }
+
+    showScreen('result');
+  }
+};
+
+// ══════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let _toastTimer = null;
+function toast(msg, cls = 'notif-info') {
+  const el = document.createElement('div');
+  el.className = `notif ${cls}`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2600);
+}
+
+// ══════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════
+(function boot() {
+  if (State.load()) {
+    document.getElementById('btn-continue').style.display = 'inline-flex';
+  }
+})();
+</script>
+</body>
+</html>
